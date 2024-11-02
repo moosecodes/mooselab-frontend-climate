@@ -26,19 +26,30 @@ const App = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Weather Data</h1>
-      {error && <p>Error: {error}</p>}
-      {weatherData ? (
-        <div>
-          <p>Celcius: {weatherData[0].celsius}</p>
-          <p>Fahrenheit: {weatherData[0].farenheit}</p>
-          <p>Timestamp: {weatherData[0].created_at}</p>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
+    <>
+      <center>
+        <h1>MooseLab Climate Reading</h1>
+        {error && <p>Error: {error}</p>}
+        {weatherData ? (
+          <small>
+            <p>{new Date(weatherData[0].created_at).toLocaleTimeString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</p>
+            <h2><b>{weatherData[0].farenheit} ° F</b></h2>
+            <h2><b>{weatherData[0].celsius} ° C</b></h2>
+          </small>
+        ) : (
+          <p>Loading...</p>
+        )}
+      </center>
+      <center>
+        hello
+      </center>
+    </>
+
   );
 };
 
