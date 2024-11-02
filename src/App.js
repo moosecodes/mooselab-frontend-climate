@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale, Filler } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
+import axios from 'axios';
 
 // Register Chart.js components
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale, Filler);
@@ -13,7 +13,7 @@ const App = () => {
 
   const fetchWeatherData = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/data'); // Adjust your API endpoint
+      const response = await axios.get('http://127.0.0.1:5000/api/data');
       setWeatherData(response.data);
     } catch (err) {
       setError(err.message);
@@ -91,19 +91,23 @@ const App = () => {
             <h2>Latest Readings</h2>
             <div>
               {weatherData.slice(-20).map((reading, index) => (
-                <>
-                  <div key={index}>
-                    <small>
-                      {new Date(reading.created_at).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}:
-                    </small>
+                <div key={index}>
+                  <div>
+                    <b>{reading.farenheit} °F</b>
+                    <small> | {reading.celsius} °C</small><br />
+                    <small>Humidity: {reading.humidity} %</small>
                   </div>
-                  <small>{reading.celsius} °C</small>, <b>{reading.farenheit} °F</b>
-                </>
+                  <small>
+                    {new Date(reading.created_at).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })} @ {new Date(reading.created_at).toLocaleTimeString('en-US', { hour: "2-digit", minute: "2-digit" })}
+                  </small>
+                  <br />
+                  <br />
+                </div>
               ))}
             </div>
           </center>
