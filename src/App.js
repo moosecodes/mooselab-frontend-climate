@@ -1,34 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-function App() {
-  const [data, setData] = useState([]);
+const App = () => {
+  const [weatherData, setWeatherData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchWeatherData = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:5000/api/data');
+      setWeatherData(response.data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:5000/api/data');
-        setData(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+    // Fetch data on initial render
+    fetchWeatherData();
 
-    fetchData();
+    // Set up interval to fetch data every minute (60000 ms)
+    const intervalId = setInterval(fetchWeatherData, 5000);
+
+    // Clear the interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
     <div>
       <h1>Weather Data</h1>
-      <ul>
-        {data.map((item, index) => (
-          <li key={index}>
-            Celsius: {item.celsius}, Fahrenheit: {item.farenheit}, Humidity: {item.humidity}
-          </li>
-        ))}
-      </ul>
+      {error && <p>Error: {error}</p>}
+      {weatherData ? (
+        <div>
+          <p>Celcius: {weatherData[0].celsius}</p>
+          <p>Fahrenheit: {weatherData[0].farenheit}</p>
+          <p>Timestamp: {weatherData[0].created_at}</p>
+        </div>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
-}
+};
 
 export default App;
