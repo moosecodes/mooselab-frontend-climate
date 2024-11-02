@@ -80,10 +80,12 @@ const App = () => {
 
   return (
     <div>
-      <h1>Weather Data</h1>
-      {error && <p>Error: {error}</p>}
       {weatherData.length > 0 ? (
         <>
+          <center>
+            <h1>Basement Climate</h1>
+            {error && <p>Error: {error}</p>}
+          </center>
           <Line data={chartData} options={options} />
           <center>
             <h2>Latest Readings</h2>
