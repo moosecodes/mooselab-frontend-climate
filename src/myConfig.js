@@ -6,6 +6,23 @@ const chartOpts = {
   layout: {
     padding: 30
   },
+  plugins: {
+    zoom: {
+      pan: {
+        enabled: true,
+        mode: 'xy', // Pan in both x and y directions
+      },
+      zoom: {
+        wheel: {
+          enabled: true,
+        },
+        pinch: {
+          enabled: true,
+        },
+        mode: 'xy', // Zoom in both x and y directions
+      },
+    },
+  },
   scales: {
     x: {
       type: 'time', // Set x-axis type to time
@@ -28,7 +45,7 @@ const chartOpts = {
       },
       ticks: {
         // Include a dollar sign in the ticks
-        callback: function (value, index, ticks) {
+        callback: function (value) {
           return value + '°';
         }
       },
