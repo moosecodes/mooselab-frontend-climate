@@ -3,6 +3,7 @@ import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement
 import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import axios from 'axios';
+import { apiBaseUrl, updateInterval, chartOpts, dateAndTime, climateStats, chartData } from './myConfig'
 
 // Register Chart.js components
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale, Filler);
@@ -13,7 +14,7 @@ const App = () => {
 
   const fetchWeatherData = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/data');
+      const response = await axios.get(apiBaseUrl);
       setWeatherData(response.data);
     } catch (err) {
       setError(err.message);
@@ -22,61 +23,9 @@ const App = () => {
 
   useEffect(() => {
     fetchWeatherData();
-    const intervalId = setInterval(fetchWeatherData, 5000);
+    const intervalId = setInterval(fetchWeatherData, updateInterval);
     return () => clearInterval(intervalId);
   }, []);
-
-  // Prepare data for the chart
-  const chartData = {
-    labels: weatherData.map((reading) => reading.created_at), // Assuming you have a created_at field
-    datasets: [
-      {
-        label: 'Temperature (°C)',
-        data: weatherData.map((reading) => ({
-          x: new Date(reading.created_at), // Convert created_at to Date object
-          y: reading.celsius,
-        })),
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        fill: true,
-      },
-      {
-        label: 'Temperature (°F)',
-        data: weatherData.map((reading) => ({
-          x: new Date(reading.created_at), // Convert created_at to Date object
-          y: reading.farenheit,
-        })),
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        fill: true,
-      },
-    ],
-  };
-
-  const options = {
-    scales: {
-      x: {
-        type: 'time', // Set x-axis type to time
-        time: {
-          unit: 'minute', // Change this to 'hour', 'day', etc., as needed
-          tooltipFormat: 'HH:mm', // Format for tooltips
-          displayFormats: {
-            minute: 'MMM d, HH:mm', // Display format for the x-axis labels
-          },
-        },
-        title: {
-          display: true,
-          text: 'Time',
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Temperature',
-        },
-      },
-    },
-  };
 
   return (
     <div>
@@ -86,30 +35,19 @@ const App = () => {
             <h1>Basement Climate</h1>
             {error && <p>Error: {error}</p>}
           </center>
-          <Line data={chartData} options={options} />
+
+          <Line data={chartData(weatherData)} options={chartOpts} />
+
           <center>
             <h2>Latest Readings</h2>
-            <div>
-              {weatherData.slice(-20).map((reading, index) => (
-                <div key={index}>
-                  <div>
-                    <b>{reading.farenheit} °F</b>
-                    <small> | {reading.celsius} °C</small><br />
-                    <small>Humidity: {reading.humidity} %</small>
-                  </div>
-                  <small>
-                    {new Date(reading.created_at).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })} @ {new Date(reading.created_at).toLocaleTimeString('en-US', { hour: "2-digit", minute: "2-digit" })}
-                  </small>
-                  <br />
-                  <br />
-                </div>
-              ))}
-            </div>
+            {weatherData.slice(0, 6).map(({ farenheit, celsius, humidity, created_at }, i) => (
+              <div key={i}>
+                {climateStats(farenheit, celsius, humidity)}
+                {dateAndTime(created_at)}
+                <br />
+                <hr />
+              </div>
+            ))}
           </center>
         </>
       ) : (
