@@ -12,14 +12,28 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip,
 const App = () => {
   const chartRef = useRef(null);
   const [weatherData, setWeatherData] = useState([]);
+
+  const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
-  const fetchWeatherData = async () => {
+  const fetchClimateReading = async () => {
     try {
       const response = await axios.get(apiBaseUrl);
       setWeatherData(response.data);
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const fetchLocalWeather = async () => {
+    try {
+      console.log(process.env.REACT_APP_OW_API_KEY)
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${process.env.REACT_APP_OW_LAT}&lon=${process.env.REACT_APP_OW_LONG}&units=imperial&appid=${process.env.REACT_APP_OW_API_KEY}&units=metric`
+      );
+      setWeather(response.data);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
     }
   };
 
@@ -44,9 +58,14 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchWeatherData();
-    const intervalId = setInterval(fetchWeatherData, updateInterval);
-    return () => clearInterval(intervalId);
+    fetchClimateReading();
+    const climateIntervalId = setInterval(fetchClimateReading, updateInterval);
+
+    fetchLocalWeather();
+
+    return () => {
+      clearInterval(climateIntervalId);
+    }
   }, []);
 
   return (
@@ -69,6 +88,21 @@ const App = () => {
                 <hr />
               </div>
             ))}
+          </center>
+
+          <center>
+            {weather ? (
+              <div>
+                <h3>Weather in {weather.name}</h3>
+                <small>Conditions: {weather.weather[0].main} ({weather.weather[0].description})</small><br />
+                <small>Temperature: <b>{weather.main.temp}°F</b> ({weather.main.temp_min} - {weather.main.temp_max} F°)</small><br />
+                <small>Feels Like: {weather.main.feels_like}°F</small><br />
+                <small>Humidity: {weather.main.humidity}%</small><br />
+                <small>{new Date(weather.dt * 1000).toLocaleString()}</small><br />
+              </div>
+            ) : (
+              <p>Loading weather data...</p>
+            )}
           </center>
 
           <Line ref={chartRef} data={chartData(weatherData)} options={chartOpts} />
