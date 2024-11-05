@@ -4,22 +4,22 @@ import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import axios from 'axios';
-import { apiBaseUrl, updateInterval, chartData, chartOpts, dateAndTime, climateStats } from './myConfig'
+import { apiBaseUrl, updateInterval, chartData, chartOpts, dateAndTime, climateStats } from './chart.config'
 
 // Register Chart.js components
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale, Filler, zoomPlugin);
 
 const App = () => {
   const chartRef = useRef(null);
-  const [weatherData, setWeatherData] = useState([]);
+  const [climateData, setClimateData] = useState([]);
 
-  const [weather, setWeather] = useState(null);
+  const [localWeatherData, setLocalWeatherData] = useState([]);
   const [error, setError] = useState(null);
 
   const fetchClimateReading = async () => {
     try {
-      const response = await axios.get(apiBaseUrl);
-      setWeatherData(response.data);
+      const response = await axios.get(apiBaseUrl + '/weather');
+      setClimateData(response.data);
     } catch (err) {
       setError(err.message);
     }
@@ -27,11 +27,8 @@ const App = () => {
 
   const fetchLocalWeather = async () => {
     try {
-      console.log(process.env.REACT_APP_OW_API_KEY)
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${process.env.REACT_APP_OW_LAT}&lon=${process.env.REACT_APP_OW_LONG}&units=imperial&appid=${process.env.REACT_APP_OW_API_KEY}&units=metric`
-      );
-      setWeather(response.data);
+      const response = await axios.get(apiBaseUrl + '/weather/local');
+      setLocalWeatherData(response.data);
     } catch (error) {
       console.error("Error fetching weather data:", error);
     }
@@ -59,53 +56,58 @@ const App = () => {
 
   useEffect(() => {
     fetchClimateReading();
-    const climateIntervalId = setInterval(fetchClimateReading, updateInterval);
+    const climateIntervalId = setInterval(fetchClimateReading, updateInterval * 10);
 
     fetchLocalWeather();
+    const weatherIntervalId = setInterval(fetchLocalWeather, updateInterval * 10);
 
     return () => {
       clearInterval(climateIntervalId);
+      clearInterval(weatherIntervalId);
     }
   }, []);
 
   return (
     <div>
-      {weatherData.length > 0 ? (
+      {climateData.length > 0 ? (
         <>
           <center>
-            <h1>Basement Climate</h1>
+            <h1>Climate Monitor</h1>
             {error && <p>Error: {error}</p>}
           </center>
 
-          <center>
-            <h3>Current Conditions</h3>
-            {weatherData.slice(0, 1).map(({ farenheit, celsius, humidity, created_at }, i) => (
-              <div key={i}>
-                {climateStats(farenheit, celsius, humidity)}
-                {dateAndTime(created_at)}
-                <br />
-                <br />
-                <hr />
-              </div>
-            ))}
-          </center>
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+            <div>
+              <h3>Current Conditions in Basement</h3>
+              <small>Basement</small>
+              <div>&nbsp;</div>
+              {climateData.slice(0, 1).map(({ farenheit, celsius, humidity, created_at }, i) => (
+                <div key={i}>
+                  {climateStats(farenheit, celsius, humidity)}
+                  <small>{dateAndTime(created_at)}</small>
+                </div>
+              ))}
+            </div>
+            {/* {JSON.stringify(localWeatherData, null, 2)} */}
+            {localWeatherData[0] ? (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h3>Weather in {localWeatherData[0].name}</h3>
+                <small>{localWeatherData[0].conditions} - {localWeatherData[0].description}</small>
+                <div>&nbsp;</div>
+                <div><b>{localWeatherData[0].farenheit}°F</b> <small>(Feels Like: {localWeatherData[0].feels_like}°F)</small>
+                  {/* <small>({localWeatherData[0].temp_min} - {localWeatherData[0].temp_max} F°)</small> */}
+                </div>
+                <small>Humidity: {localWeatherData[0].humidity}%</small>
+                <small>{dateAndTime(localWeatherData[0].created_at)}</small>
 
-          <center>
-            {weather ? (
-              <div>
-                <h3>Weather in {weather.name}</h3>
-                <small>Conditions: {weather.weather[0].main} ({weather.weather[0].description})</small><br />
-                <small>Temperature: <b>{weather.main.temp}°F</b> ({weather.main.temp_min} - {weather.main.temp_max} F°)</small><br />
-                <small>Feels Like: {weather.main.feels_like}°F</small><br />
-                <small>Humidity: {weather.main.humidity}%</small><br />
-                <small>{new Date(weather.dt * 1000).toLocaleString()}</small><br />
               </div>
             ) : (
               <p>Loading weather data...</p>
             )}
-          </center>
 
-          <Line ref={chartRef} data={chartData(weatherData)} options={chartOpts} />
+          </div>
+
+          {localWeatherData && <Line ref={chartRef} data={chartData(climateData, localWeatherData)} options={chartOpts} />}
 
           <center style={{ marginTop: '10px' }}>
             <button onClick={handleZoomIn}>Zoom In</button>
@@ -117,7 +119,7 @@ const App = () => {
 
           <center>
             <h3>Latest Readings</h3>
-            {weatherData.slice(0, 6).map(({ farenheit, celsius, humidity, created_at }, i) => (
+            {climateData.slice(0, 6).map(({ farenheit, celsius, humidity, created_at }, i) => (
               <div key={i}>
                 {climateStats(farenheit, celsius, humidity)}
                 {dateAndTime(created_at)}

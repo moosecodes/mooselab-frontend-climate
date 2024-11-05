@@ -4,7 +4,7 @@ const updateInterval = process.env.REACT_APP_UPDATE_INTERVAL
 
 const chartOpts = {
   layout: {
-    padding: 30
+    padding: 50
   },
   plugins: {
     zoom: {
@@ -48,52 +48,54 @@ const chartOpts = {
         callback: function (value) {
           return value + '°';
         }
-      },
-      suggestedMin: 0,
-      suggestedMax: 75
+      }
     },
   },
 };
 
 const dateAndTime = (created_at) => {
   return <small>
-    {new Date(created_at).toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })} @ {new Date(created_at).toLocaleTimeString('en-US', { hour: "2-digit", minute: "2-digit" })}
+    {new Date(created_at).toLocaleString()}
   </small>
 }
 
 const climateStats = (f, c, h) => {
   return <div>
     <b>{f} °F</b>
-    <small> | {c} °C</small><br />
+    {/* <small> | {c} °C</small> */}
+    <br />
     <small>Humidity: {h} %</small>
   </div>
 }
 
 // Prepare data for the chart
-const chartData = (weatherData) => {
+const chartData = (climateData, recentEntries) => {
   return {
-    labels: weatherData.map(({ created_at }) => created_at), // Assuming you have a created_at field
+    labels: climateData.map(({ created_at }) => created_at),
     datasets: [
       {
         label: 'Temperature (°F)',
-        data: weatherData.map(({ created_at, farenheit }) => ({
-          x: new Date(created_at), // Convert created_at to Date object
+        data: climateData.map(({ created_at, farenheit }) => ({
+          x: new Date(created_at),
           y: farenheit,
         })),
         borderColor: 'rgba(75, 192, 192, 1)',
       },
+      // {
+      //   label: 'Temperature (°C)',
+      //   data: climateData.map(({ created_at, celsius }) => ({
+      //     x: new Date(created_at),
+      //     y: celsius,
+      //   })),
+      //   borderColor: 'rgba(255, 99, 132, 1)',
+      // },
       {
-        label: 'Temperature (°C)',
-        data: weatherData.map(({ created_at, celsius }) => ({
-          x: new Date(created_at), // Convert created_at to Date object
-          y: celsius,
+        label: 'Outside Temp (°F)',
+        data: recentEntries.map(({ created_at, farenheit }) => ({
+          x: new Date(created_at),
+          y: farenheit,
         })),
-        borderColor: 'rgba(255, 99, 132, 1)',
+        borderColor: 'rgba(255, 100, 255, 1)',
       },
     ],
   }
