@@ -11,19 +11,9 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip,
 
 const App = () => {
   const chartRef = useRef(null);
-
   const [climateData, setClimateData] = useState([]);
   const [localWeatherData, setLocalWeatherData] = useState([]);
   const [error, setError] = useState(null);
-
-  const startFetchingWeatherReadings = async () => {
-    try {
-      const response = await axios.get(apiBaseUrl + '/weather/fetch');
-      console.log("Weather data fetched:", response.data);
-    } catch (error) {
-      console.error("Error fetching weather data:", error);
-    }
-  };
 
   const getRecentClimateReadings = async () => {
     try {
@@ -64,9 +54,6 @@ const App = () => {
   };
 
   useEffect(() => {
-    startFetchingWeatherReadings();
-    const startFetchIntervalId = setInterval(startFetchingWeatherReadings, process.env.REACT_APP_UPDATE_INTERVAL);
-
     getRecentClimateReadings();
     const climateIntervalId = setInterval(getRecentClimateReadings, process.env.REACT_APP_UPDATE_INTERVAL);
 
@@ -77,7 +64,6 @@ const App = () => {
       // On unmount, clear the intervals
       clearInterval(climateIntervalId);
       clearInterval(weatherIntervalId);
-      clearInterval(startFetchIntervalId);
     }
   }, []);
 
@@ -102,14 +88,13 @@ const App = () => {
                 </div>
               ))}
             </div>
-            {/* {JSON.stringify(localWeatherData, null, 2)} */}
+
             {localWeatherData[0] ? (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <h3>Weather in {localWeatherData[0].name}</h3>
                 <small>{localWeatherData[0].conditions} - {localWeatherData[0].description}</small>
                 <div>&nbsp;</div>
                 <div><b>{localWeatherData[0].farenheit}°F</b> <small>(Feels Like: {localWeatherData[0].feels_like}°F)</small>
-                  {/* <small>({localWeatherData[0].temp_min} - {localWeatherData[0].temp_max} F°)</small> */}
                 </div>
                 <small>Humidity: {localWeatherData[0].humidity}%</small>
                 <small>{dateAndTime(localWeatherData[0].created_at)}</small>
