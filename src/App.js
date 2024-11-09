@@ -4,30 +4,39 @@ import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import axios from 'axios';
-import { apiBaseUrl, updateInterval, chartData, chartOpts, dateAndTime, climateStats } from './chart.config'
+import { apiBaseUrl, chartData, chartOpts, dateAndTime, climateStats } from './chart.config'
 
 // Register Chart.js components
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale, Filler, zoomPlugin);
 
 const App = () => {
   const chartRef = useRef(null);
-  const [climateData, setClimateData] = useState([]);
 
+  const [climateData, setClimateData] = useState([]);
   const [localWeatherData, setLocalWeatherData] = useState([]);
   const [error, setError] = useState(null);
 
-  const fetchClimateReading = async () => {
+  const startFetchingWeatherReadings = async () => {
     try {
-      const response = await axios.get(apiBaseUrl + '/weather');
+      const response = await axios.get(apiBaseUrl + '/weather/fetch');
+      console.log("Weather data fetched:", response.data);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+    }
+  };
+
+  const getRecentClimateReadings = async () => {
+    try {
+      const response = await axios.get(apiBaseUrl + '/climate/recent');
       setClimateData(response.data);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const fetchLocalWeather = async () => {
+  const getRecentWeatherReadings = async () => {
     try {
-      const response = await axios.get(apiBaseUrl + '/weather/local');
+      const response = await axios.get(apiBaseUrl + '/weather/recent');
       setLocalWeatherData(response.data);
     } catch (error) {
       console.error("Error fetching weather data:", error);
@@ -55,15 +64,20 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchClimateReading();
-    const climateIntervalId = setInterval(fetchClimateReading, updateInterval * 10);
+    startFetchingWeatherReadings();
+    const startFetchIntervalId = setInterval(startFetchingWeatherReadings, process.env.REACT_APP_UPDATE_INTERVAL);
 
-    fetchLocalWeather();
-    const weatherIntervalId = setInterval(fetchLocalWeather, updateInterval * 10);
+    getRecentClimateReadings();
+    const climateIntervalId = setInterval(getRecentClimateReadings, process.env.REACT_APP_UPDATE_INTERVAL);
+
+    getRecentWeatherReadings();
+    const weatherIntervalId = setInterval(getRecentWeatherReadings, process.env.REACT_APP_UPDATE_INTERVAL);
 
     return () => {
+      // On unmount, clear the intervals
       clearInterval(climateIntervalId);
       clearInterval(weatherIntervalId);
+      clearInterval(startFetchIntervalId);
     }
   }, []);
 

@@ -1,7 +1,5 @@
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
 
-const updateInterval = process.env.REACT_APP_UPDATE_INTERVAL
-
 const chartOpts = {
   layout: {
     padding: 50
@@ -101,4 +99,4 @@ const chartData = (climateData, recentEntries) => {
   }
 };
 
-export { apiBaseUrl, updateInterval, chartOpts, dateAndTime, climateStats, chartData };
+export { apiBaseUrl, chartOpts, dateAndTime, climateStats, chartData };
