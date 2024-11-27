@@ -37,6 +37,8 @@ const chartOpts = {
       },
     },
     y: {
+      max: 100,
+      min: 0,
       title: {
         display: true,
         text: 'Temperature',
