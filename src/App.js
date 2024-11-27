@@ -4,7 +4,7 @@ import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import axios from 'axios';
-import { apiBaseUrl, chartData, chartOpts } from './chart.config'
+import { chartData, chartOpts } from './chart.config'
 
 import Headline from './components/headline.jsx';
 import RoomConditions from './components/RoomConditions.jsx';
@@ -24,7 +24,7 @@ const App = () => {
 
   const getRecentClimateReadings = async () => {
     try {
-      const response = await axios.get(apiBaseUrl + '/climate/recent');
+      const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/climate/recent');
       setClimateData(response.data);
     } catch (err) {
       setError(err.message);
@@ -33,7 +33,7 @@ const App = () => {
 
   const getRecentWeatherReadings = async () => {
     try {
-      const response = await axios.get(apiBaseUrl + '/weather/recent');
+      const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/weather/recent');
       setLocalWeatherData(response.data);
     } catch (error) {
       console.error("Error fetching weather data:", error);
@@ -78,19 +78,18 @@ const App = () => {
     <div>
       {climateData.length > 0 ? (
         <>
-        <Headline error={error} />
-
-        {/* <WeatherReadings climateData={climateData} /> */}
-        {/* <ClimateMonitor /> */}
+          <Headline error={error} />
 
           <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
-          
             <RoomConditions climateData={climateData} />  
             <WeatherConditions localWeatherData={localWeatherData} />
-
           </div>
           
-          {localWeatherData && <Line ref={chartRef} data={chartData(climateData, localWeatherData)} options={chartOpts} />}
+          {localWeatherData && 
+            <Line 
+              ref={chartRef} 
+              data={chartData(climateData, localWeatherData)} 
+              options={chartOpts} />}
 
           { localWeatherData && <center style={{ marginTop: '10px' }}>
             <button onClick={handleZoomIn}>Zoom In</button>

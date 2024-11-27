@@ -1,5 +1,3 @@
-const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
-
 const chartOpts = {
   layout: {
     padding: 50
@@ -101,4 +99,4 @@ const chartData = (climateData, recentEntries) => {
   }
 };
 
-export { apiBaseUrl, chartOpts, dateAndTime, climateStats, chartData };
+export { chartOpts, dateAndTime, climateStats, chartData };
