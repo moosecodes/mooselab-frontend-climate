@@ -6,7 +6,7 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import axios from 'axios';
 import { chartData, chartOpts } from './chart.config'
 
-import Headline from './components/headline.jsx';
+import Headline from './components/Headline.jsx';
 import RoomConditions from './components/RoomConditions.jsx';
 import WeatherConditions from './components/WeatherConditions.jsx';
 import LatestReadings from './components/LatestReadings.jsx';
@@ -24,21 +24,21 @@ const App = () => {
 
   const getRecentClimateReadings = async () => {
     try {
-      const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/climate/recent');
+      const response = await axios.get(process.env.REACT_APP_DHT11_BASE_URL + '/recent');
       setClimateData(response.data);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // const getRecentWeatherReadings = async () => {
-  //   try {
-  //     const response = await axios.get(process.env.REACT_APP_API_BASE_URL + '/weather/recent');
-  //     setLocalWeatherData(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching weather data:", error);
-  //   }
-  // };
+  const getRecentWeatherReadings = async () => {
+    try {
+      const response = await axios.get(process.env.REACT_APP_WEATHER_BASE_URL + '/recent');
+      setLocalWeatherData(response.data);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+    }
+  };
 
   const handleZoomIn = () => {
     chartRef.current.zoom(1.2); // Zoom in by a factor of 1.2
@@ -64,13 +64,13 @@ const App = () => {
     getRecentClimateReadings();
     const climateIntervalId = setInterval(getRecentClimateReadings, process.env.REACT_APP_UPDATE_INTERVAL);
 
-    // getRecentWeatherReadings();
-    // const weatherIntervalId = setInterval(getRecentWeatherReadings, process.env.REACT_APP_UPDATE_INTERVAL);
+    getRecentWeatherReadings();
+    const weatherIntervalId = setInterval(getRecentWeatherReadings, process.env.REACT_APP_UPDATE_INTERVAL);
 
     return () => {
       // On unmount, clear the intervals
       clearInterval(climateIntervalId);
-      // clearInterval(weatherIntervalId);
+      clearInterval(weatherIntervalId);
     }
   }, []);
 
@@ -84,7 +84,7 @@ const App = () => {
             <RoomConditions climateData={climateData} />  
             <WeatherConditions localWeatherData={localWeatherData} />
           </div>
-          
+
           {localWeatherData && 
             <Line 
               ref={chartRef} 
