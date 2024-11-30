@@ -2,7 +2,8 @@ import React from "react";
 import { dateAndTime } from "../chart.config";
 
 function WeatherConditions({ localWeatherData }) {
-  const weatherIcon = `https://openweathermap.org/img/wn/${localWeatherData[0].icon}@2x.png`;
+  const weatherIcon = `https://openweathermap.org/img/wn/${localWeatherData[0]?.icon}@2x.png`;
+
   return (
     <>
     {localWeatherData[0] ? (
